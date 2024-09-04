@@ -5,17 +5,57 @@ import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import CheckinButton from './CheckinButton';
 import icon from 'flarum/common/helpers/icon';
-
+import load from 'external-load';
 
 export default class CheckinList extends Component {
-
+  sitekey =app.forum.attribute('fof-recaptcha.credentials.site');
+  theme = app.forum.attribute('theme_dark_mode');
+  type = app.forum.attribute('fof-recaptcha.type');
+  size = app.forum.attribute('fof-recaptcha.type');
   oninit(vnode) {
     super.oninit(vnode);
-
     this.state = this.attrs.state;
-    
+
   }
 
+  oncreate(vnode) {
+    super.oncreate(vnode);
+
+    this.addResources().then(() => {
+      const interval = setInterval(() => {
+        if ((window as any).grecaptcha) {
+          clearInterval(interval);
+          const recaptchaContainer = vnode.dom.querySelector('.g-recaptcha') as HTMLElement;
+          if (recaptchaContainer) {
+            (window as any).grecaptcha.render(recaptchaContainer,{
+              sitekey: this.sitekey,
+              theme: this.theme,
+              type: this.type,
+              size: this.size,
+              callback: this.callback,
+            });
+          }
+        }
+      }, 250);
+    });
+
+    // It's possible to TAB into the reCAPTCHA iframe, and it's very confusing when using the invisible mode
+    if (this.attrs.state.type === 'invisible') {
+      const iframe = vnode.dom.querySelector('iframe');
+
+      if (iframe) {
+        (iframe as HTMLIFrameElement).tabIndex = -1;
+      }
+    }
+  }
+  async addResources() {
+    await new Promise<void>((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://www.recaptcha.net/recaptcha/api.js?render='+this.sitekey;
+      script.onload = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
   getWeekdays() {
     // for China, Monday/day(1) is first day
     let displayDaysCount = 0;
@@ -33,7 +73,7 @@ export default class CheckinList extends Component {
       todayNum = 7;
     }
     startday = dayjs().subtract(todayNum-1,'day');
-    
+
     displayDaysCount = 7;
 
     const displayDays = [];
@@ -65,7 +105,7 @@ export default class CheckinList extends Component {
 
                 return (
                   <li className={check_status + ' count-'+checkins.length} title={check_status}>
-                      
+
                         {checkinItem.id() > 0 ? (
                             <view>
                               <div className="Notification-content">
@@ -97,7 +137,7 @@ export default class CheckinList extends Component {
                             </div>
                           </view>
                         )}
-                      
+
                   </li>
                 );
 
@@ -107,7 +147,7 @@ export default class CheckinList extends Component {
             ) : (
               <LoadingIndicator className="LoadingIndicator--block" />
             )}
-            
+
           </ul>
           <div className="subtitle">
             {app.translator.trans('gtdxyz-checkin.forum.count-text', {count: app.session.user.attribute('checkin_days_count')})} <br />
@@ -116,6 +156,9 @@ export default class CheckinList extends Component {
                 app.translator.trans('gtdxyz-checkin.forum.constant-recent-count-text', {count: app.session.user.attribute('checkin_constant_count')})
               )
             }
+          </div>
+          <div className="Form-group">
+            <div className="g-recaptcha" />
           </div>
           <div className="Form-group">
             {allowCheckin ? (

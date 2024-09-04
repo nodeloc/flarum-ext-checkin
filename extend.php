@@ -19,6 +19,7 @@ use Gtdxyz\Checkin\Event\CheckinHistoryEvent;
 use Gtdxyz\Checkin\Listeners\CheckinHistoryListener;
 use Gtdxyz\Checkin\Listeners\CheckinUpdateMoneyListener;
 use Gtdxyz\Checkin\Api\Controller\ListUserCheckinHistoryController;
+use Flarum\Frontend\Document;
 use Gtdxyz\Checkin\Validator\CheckinValidator;
 
 $extend = [
@@ -29,7 +30,6 @@ $extend = [
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__ . '/less/forum.less')
         ->route('/u/{username}/checkin/history', 'gtdxyz-checkin.forum.checkin'),
-
     (new Extend\Locales(__DIR__ . '/locale')),
 
     (new Extend\Policy())->modelPolicy(User::class, UserPolicy::class),
@@ -44,8 +44,8 @@ $extend = [
         ->get('/checkin/history', 'user.checkin.history', ListUserCheckinHistoryController::class),
 
 
-    // (new Extend\ApiSerializer(UserSerializer::class))
-    //     ->attributes(AddCheckinAttributes::class),
+    (new Extend\ApiSerializer(UserSerializer::class))
+         ->attributes(AddCheckinAttributes::class),
 
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
         ->attributes(AddCheckinAttributes::class),
@@ -71,7 +71,7 @@ $extend = [
         ->configure(AddValidatorRule::class)
 ];
 
-if (class_exists('Gtdxyz\Money\History\Event\MoneyHistoryEvent')) {
+if (class_exists('Mattoid\MoneyHistory\Event\MoneyHistoryEvent')) {
     $extend[] =
         (new Extend\Event())
             ->listen(CheckinHistoryEvent::class, CheckinUpdateMoneyListener::class)

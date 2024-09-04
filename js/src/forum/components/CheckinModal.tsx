@@ -41,10 +41,20 @@ export default class CheckinModal extends NotificationsDropdown<IDropdownAttrs &
   }
 
   getUnreadCount() {
-    return 0;
+    const allowCheckin = app.session.user.attribute("allowCheckin");
+    if (!allowCheckin) {
+      return 0;
+    }else{
+      return 1;
+    }
   }
 
   getNewCount() {
-    return 0;
+      const allowCheckin = app.session.user.attribute("allowCheckin");
+      if (!allowCheckin) {
+        return 0;
+      }else{
+        return 1;
+      }
   }
 }

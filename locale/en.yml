@@ -3,6 +3,8 @@ gtdxyz-checkin:
     checkin: Checkin
     checked-day: Checkin {count} Day
     checked-days: Checkin {count} Days
+    common-checkin: Get {amount} Money
+    lucky-checkin: Try lucky today
     success: Checkin Success
     failed: Checkin Failed
     try-again-later: Please try again later

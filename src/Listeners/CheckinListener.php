@@ -36,18 +36,31 @@ class CheckinListener
         $this->validator = $validator;
     }
 
-    public function checkinSaving(Saving $event)
-    {
-        $this->validator->assertValid($event->data);
+    // function verifyRecaptcha($token) {
+    //     $secret = $this->settings->get('fof-recaptcha.credentials.secret');
+    //     $response = file_get_contents("https://www.recaptcha.net/recaptcha/api/siteverify?secret={$secret}&response={$token}");
+    //     $result = json_decode($response, true);
+    //     return $result['success'];
+    // }
 
+    public function checkinSaving(Saving $event){
+        $this->validator->assertValid($event->data);
         $actor = $event->actor;
         $user = $event->user;
         $allowCheckin = $actor->can('checkin.allowCheckin', $user);
 
         $attributes = Arr::get($event->data, 'attributes', []);
 
+        if(Arr::has($attributes, "recaptchaToken")){
+            if (!$this->verifyRecaptcha($attributes['checkin_days_count'])) {
+                throw new ValidationException([
+                         'message' => "reCAPTCHA validation failed"
+                     ]);
+            }
+        }
+
         //check permissions
-        if ($allowCheckin && Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])) {
+        if($allowCheckin && Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])){
 
             $userID = $user->id;
             //daily reward
@@ -87,6 +100,9 @@ class CheckinListener
                 }
 
                 //get constant 6 days checkin data
+                if($constant && $constant_days > 0) {
+
+                //get constant 6 days checkin data
                 if ($constant && $constant_days > 0) {
 
                     if ($constant_force) {
@@ -121,17 +137,18 @@ class CheckinListener
             }
 
 
-            if (!$checkin_today) {
+            if(!$checkin_today){
 
                 $checkin_time = Carbon::now()->format('Y-m-d H:i:s');
                 $reward_money = $daily_reward;
-                $type = 'N';
+
+                $type = $attributes['checkin_type'];
                 $event_id = 0;
                 $constant = 1;
                 $remark = 'daily';
                 //check met constant days or not
-                if ($checkin_constant_met) {
-                    $reward_money = bcadd($reward_money, $constant_reward);
+                if($checkin_constant_met){
+                    $reward_money = $reward_money + $constant_reward;
                     $event_id = 1; //constant event
                     $constant = 2; //constant reset
                     $remark = 'constant';

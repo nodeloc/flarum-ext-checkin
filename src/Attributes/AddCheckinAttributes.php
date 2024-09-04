@@ -30,7 +30,7 @@ class AddCheckinAttributes
         return $this->history()
             ->where('event_id', 0);
     }
-    
+
     public function __invoke(UserSerializer $serializer, User $user)
     {
         $constant = intval($this->settings->get('gtdxyz-checkin.constant', 0));
@@ -49,7 +49,7 @@ class AddCheckinAttributes
         $last_history = UserCheckinHistory::where('user_id',$user->id)
             ->orderBy('checkin_time','desc')
             ->first();
-        
+
         //if any checkin
         if($last_history) {
 
@@ -61,7 +61,7 @@ class AddCheckinAttributes
 
             $checkin_days_count = $checkin_yesterday?1:0;
             $checkin_days_count += $checkin_today?1:0;
-            
+
             //get checked days checkin data
             $start_week = Carbon::today()->startOfWeek()->format('Y-m-d 00:00:00');
             if($constant == 1 && $constant_days > 0){
@@ -71,7 +71,7 @@ class AddCheckinAttributes
                 $start_date = $start_week;
             }
             $end_date = Carbon::now()->format('Y-m-d H:i:s');
-                
+
             $days_count = UserCheckinHistory::where('user_id',$user->id)
                 ->where('type','N')
                 ->where('constant','>',0)
@@ -79,7 +79,7 @@ class AddCheckinAttributes
                 ->where('checkin_time','<', $end_date)
                 ->orderBy('checkin_time','desc')
                 ->count();
-            
+
             $checkin_days_count = $days_count;
 
             // get constantly count
@@ -94,17 +94,18 @@ class AddCheckinAttributes
                 $data = $this->db->selectOne($sql);
                 $checkin_constant_count = $data ? $data->check_days : 0;
             }
-            
-            
+
+
         }
 
-        
+        $attributes['lastCheckinTime'] = $user->last_checkin_time;
         $attributes['checkin_last_time'] = $checkin_last_time;
         // $attributes['checkin_yesterday'] = $checkin_yesterday;
+        $attributes['lastCheckinMoney'] = $user->last_checkin_money;
         $attributes['checkin_days_count'] = $checkin_days_count;
         $attributes['checkin_constant_count'] = $checkin_constant_count;
         $attributes['checkin_sync'] = 0;
-        
+
         $actor = $serializer->getActor();
         $attributes['allowCheckin'] = (!$checkin_today && $actor->can('checkin.allowCheckin', $user))?true:false;
 
