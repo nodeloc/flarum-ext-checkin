@@ -53,11 +53,10 @@ class CheckinListener
         $this->validator->assertValid($attributes);
         $actor = $event->actor;
         $user = $event->user;
-        $allowCheckin = $actor->can('checkin.allowCheckin', $user);
-
+        $actor->assertCan('allowCheckin', $user);
 
         //check permissions
-        if ($allowCheckin && Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])) {
+        if (Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])) {
 
             $userID = $user->id;
             //daily reward
