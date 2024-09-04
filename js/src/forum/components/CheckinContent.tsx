@@ -28,7 +28,7 @@ export default class CheckinContent extends Component {
       todayNum = 7;
     }
     startday = dayjs().subtract(todayNum-1,'day');
-    
+
     displayDaysCount = 7;
 
     const displayDays = [];
@@ -62,7 +62,7 @@ export default class CheckinContent extends Component {
 
                             return (
                             <li className={check_status + ' count-'+checkins.length} title={check_status}>
-                                
+
                                     {checkinItem.id() > 0 ? (
                                         <view>
                                         <div className="Notification-content">
@@ -94,7 +94,7 @@ export default class CheckinContent extends Component {
                                         </div>
                                     </view>
                                     )}
-                                
+
                             </li>
                             );
 
@@ -104,7 +104,7 @@ export default class CheckinContent extends Component {
                         ) : (
                         <LoadingIndicator className="LoadingIndicator--block" />
                         )}
-                        
+
                     </ul>
                     <div className="subtitle">
                         {app.translator.trans('gtdxyz-checkin.forum.count-text', {count: app.session.user.attribute('checkin_days_count')})} <br />

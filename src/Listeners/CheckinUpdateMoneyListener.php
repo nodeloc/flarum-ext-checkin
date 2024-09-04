@@ -7,8 +7,8 @@ use Flarum\Locale\Translator;
 use Flarum\Settings\SettingsRepositoryInterface;
 
 use Gtdxyz\Checkin\Event\CheckinHistoryEvent;
-use Gtdxyz\Money\Event\MoneyUpdated;
-use Gtdxyz\Money\History\Event\MoneyHistoryEvent;
+use AntoineFr\Money\Event\MoneyUpdated;
+use Mattoid\MoneyHistory\Event\MoneyHistoryEvent;
 
 
 class CheckinUpdateMoneyListener
@@ -30,12 +30,11 @@ class CheckinUpdateMoneyListener
     public function handle(CheckinHistoryEvent $checkin) {
         $user = $checkin->user;
         $amount = $checkin->reward_money;
-
-        $user->money = bcadd($user->money, $amount);
+        $user->last_checkin_time = $checkin->checkin_time;
+        $user->last_checkin_money = $amount;
+        $user->money = $user->money + $amount;
         $user->save();
-
         $this->events->dispatch(new MoneyUpdated($user));
-
         $this->events->dispatch(new MoneyHistoryEvent($user, $amount, $this->source, $this->sourceDesc));
     }
 }

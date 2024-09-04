@@ -3,6 +3,8 @@ gtdxyz-checkin:
     checkin: 签到
     checked-day: 已签到 {count} 天
     checked-days: 已签到 {count} 天
+    common-checkin: 直接领 {amount} 能量
+    lucky-checkin: 今天试试手气
     success: 签到成功
     failed: 签到失败
     try-again-later: 请稍后重试

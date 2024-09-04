@@ -18,10 +18,10 @@ export default class checkinSuccessModal extends Modal {
   content() {
     //
     const checkin_days_count = app.session.user.attribute("checkin_days_count");
-    const checkinReward = app.forum.attribute("checkinReward");
+    const lastcheckinmoney = app.session.user.attribute("lastCheckinMoney");
     const checkinSuccessText = app.forum.attribute("checkinSuccessText");
     const checkinSuccessRewardText = app.forum.attribute("checkinSuccessRewardText");
-    const moneyExtensionExist = app.forum.attribute('gtdxyz-money-plus.moneyname')!==undefined;
+    const moneyExtensionExist = app.forum.attribute('antoinefr-money.moneyname')!==undefined;
 
     let moneyName = "";
     let rewardText = "";
@@ -31,17 +31,49 @@ export default class checkinSuccessModal extends Modal {
     if(checkinSuccessText!==""){
       successTextClassName = "CheckinModal successText";
     }
+    const idioms= {
+      1: ["唉~~~~~"],
+      2: ["时运不济"],
+      3: ["时运不济"],
+      4: ["平淡无奇"],
+      5: ["平淡无奇"],
+      6: ["寻常如故"],
+      7: ["寻常如故"],
+      8: ["转运亨通"],
+      9: ["转运亨通"],
+      10: ["幸运降临"],
+      11: ["幸运降临"],
+      12: ["顺风顺水"],
+      13: ["顺风顺水"],
+      14: ["福气绵绵"],
+      15: ["福气绵绵"],
+      16: ["鸿运当头"],
+      17: ["鸿运当头"],
+      18: ["天时地利人和"]
+    };
+    let result = [];
 
+    let act_money = 0;
     if(moneyExtensionExist===true && checkinSuccessRewardText!==""){
-      moneyName = app.forum.attribute('gtdxyz-money-plus.moneyname') || 'MO';
-      rewardText = checkinReward + moneyName;
-      rewardTextClassName = "CheckinModal rewardText";
+      moneyName = app.forum.attribute('antoinefr-money.moneyname') || '[money]';
+      rewardText = moneyName.replace('[money]', lastcheckinmoney);
+
+      rewardTextClassName = "checkInResultModal rewardText";
+      if(lastcheckinmoney>100){
+        rewardText = rewardText + ' , 其中连续签到 7 天额外奖励 100能量  ';
+        act_money = lastcheckinmoney -100;
+      }else{
+        act_money = lastcheckinmoney;
+      }
+      if (idioms[act_money]) {
+        result = idioms[act_money];
+      }
     }
 
     return (
       <div className="Modal-body">
         <div className={successTextClassName}>{checkinSuccessText.replace('[days]', checkin_days_count+1)}</div>
-        <div className={rewardTextClassName}>{checkinSuccessRewardText.replace('[reward]', rewardText)}</div>
+        <div className={rewardTextClassName}>您今天{result.join(", ")}，{checkinSuccessRewardText.replace('[reward]', rewardText)}</div>
       </div>
     );
   }

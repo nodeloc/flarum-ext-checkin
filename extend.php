@@ -18,16 +18,16 @@ use Gtdxyz\Checkin\Event\CheckinHistoryEvent;
 use Gtdxyz\Checkin\Listeners\CheckinHistoryListener;
 use Gtdxyz\Checkin\Listeners\CheckinUpdateMoneyListener;
 use Gtdxyz\Checkin\Api\Controller\ListUserCheckinHistoryController;
+use Flarum\Frontend\Document;
 
 $extend = [
     (new Extend\Frontend('admin'))
         ->js(__DIR__.'/js/dist/admin.js'),
-    
+
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__.'/less/forum.less')
         ->route('/u/{username}/checkin/history', 'gtdxyz-checkin.forum.checkin'),
-
     (new Extend\Locales(__DIR__ . '/locale')),
 
     (new Extend\Policy())->modelPolicy(User::class, UserPolicy::class),
@@ -41,13 +41,13 @@ $extend = [
     (new Extend\Routes('api'))
         ->get('/checkin/history', 'user.checkin.history', ListUserCheckinHistoryController::class),
 
-    
-    // (new Extend\ApiSerializer(UserSerializer::class))
-    //     ->attributes(AddCheckinAttributes::class),
+
+    (new Extend\ApiSerializer(UserSerializer::class))
+         ->attributes(AddCheckinAttributes::class),
 
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
         ->attributes(AddCheckinAttributes::class),
-    
+
     (new Extend\Settings())
         ->serializeToForum('checkinPosition', 'gtdxyz-checkin.position', 'intval', 0)
         ->serializeToForum('checkinReward', 'gtdxyz-checkin.reward','intval', 0)
@@ -66,7 +66,7 @@ $extend = [
         }),
 ];
 
-if (class_exists('Gtdxyz\Money\History\Event\MoneyHistoryEvent')) {
+if (class_exists('Mattoid\MoneyHistory\Event\MoneyHistoryEvent')) {
     $extend[] =
         (new Extend\Event())
             ->listen(CheckinHistoryEvent::class, CheckinUpdateMoneyListener::class)

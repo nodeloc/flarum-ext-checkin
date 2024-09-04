@@ -31,6 +31,15 @@ class CheckinListener{
         $this->grammar = $grammar;
     }
 
+
+
+    function verifyRecaptcha($token) {
+        $secret = $this->settings->get('fof-recaptcha.credentials.secret');
+        $response = file_get_contents("https://www.recaptcha.net/recaptcha/api/siteverify?secret={$secret}&response={$token}");
+        $result = json_decode($response, true);
+        return $result['success'];
+    }
+
     public function checkinSaving(Saving $event){
 
         $actor = $event->actor;
@@ -38,11 +47,19 @@ class CheckinListener{
         $allowCheckin = $actor->can('checkin.allowCheckin', $user);
 
         $attributes = Arr::get($event->data, 'attributes', []);
-        
+
+        if(Arr::has($attributes, "recaptchaToken")){
+            if (!$this->verifyRecaptcha($attributes['checkin_days_count'])) {
+                throw new ValidationException([
+                         'message' => "reCAPTCHA validation failed"
+                     ]);
+            }
+        }
+
         //check permissions
         if($allowCheckin && Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])){
 
-            $userID = $user->id;    
+            $userID = $user->id;
             //daily reward
             $daily_reward = $this->settings->get('gtdxyz-checkin.reward', 0);
 
@@ -66,7 +83,7 @@ class CheckinListener{
                 ->where('checkin_time', '>', $start_date) //from recent date
                 ->orderBy('checkin_time','desc')
                 ->first();
-            
+
             //check if checkin yesterday
             if($last_history) {
 
@@ -78,7 +95,7 @@ class CheckinListener{
                     //     'message' => $this->translator->trans('gtdxyz-checkin.forum.errors.today-has-checkin')
                     // ]);
                 }
-                
+
                 //get constant 6 days checkin data
                 if($constant && $constant_days > 0) {
 
@@ -100,7 +117,7 @@ class CheckinListener{
                             ->orderBy('checkin_time','desc')
                             ->count();
                     }
-                    
+
                     //constant days met
                     if($constant_count == intval($constant_days-1)){
                         $checkin_constant_met = true;
@@ -112,29 +129,30 @@ class CheckinListener{
                     $checkin_constant_met = true;
                 }
             }
-            
+
 
             if(!$checkin_today){
-                
+
                 $checkin_time = Carbon::now()->format('Y-m-d H:i:s');
                 $reward_money = $daily_reward;
-                $type = 'N';
+
+                $type = $attributes['checkin_type'];
                 $event_id = 0;
                 $constant = 1;
                 $remark = 'daily';
                 //check met constant days or not
                 if($checkin_constant_met){
-                    $reward_money = bcadd($reward_money, $constant_reward);
+                    $reward_money = $reward_money + $constant_reward;
                     $event_id = 1; //constant event
                     $constant = 2; //constant reset
                     $remark = 'constant';
                 }
-                
+
                 $this->events->dispatch(new CheckinHistoryEvent($user, $checkin_time, $reward_money, $constant, $type, $event_id, $remark));
-                
+
             }
         }
 
-        
+
     }
 }
