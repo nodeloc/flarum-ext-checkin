@@ -1,130 +1,172 @@
-import Component from "flarum/Component";
-import app from "flarum/app";
-import type dayjs from 'dayjs';
-import LoadingIndicator from "flarum/components/LoadingIndicator";
+import Component from "flarum/common/Component";
+import app from "flarum/forum/app";
+import dayjs from 'dayjs';
+import LoadingIndicator from "flarum/common/components/LoadingIndicator";
 import icon from 'flarum/common/helpers/icon';
 import CheckinButton from './CheckinButton';
+import CheckinListState from "../states/CheckinListSate";
+import RecaptchaState from "../Recaptcha/RecaptchaState";
+import Recaptcha from "../Recaptcha/Recaptcha";
 
-export default class CheckinContent extends Component {
-  oninit(vnode) {
-    super.oninit(vnode);
-    this.state = this.attrs.state;
-  }
-
-  getWeekdays() {
-    // for China, Monday/day(1) is first day
-    let displayDaysCount = 0;
-    let startday;
-    // if(app.forum.attribute('checkinConstant') === 1){
-    //   displayDaysCount = app.forum.attribute('checkinConstantDays');
-    //   startday = dayjs().subtract(displayDaysCount-1, 'day')
-    // } else {
-    //   startday = dayjs().day(1);
-    //   displayDaysCount = 7;
-    // }
-
-    let todayNum = dayjs().day();
-    if(todayNum === 0){
-      todayNum = 7;
-    }
-    startday = dayjs().subtract(todayNum-1,'day');
-
-    displayDaysCount = 7;
-
-    const displayDays = [];
-    displayDays.push(startday.format('YYYY-MM-DD'));
-
-    let i = 1;
-    while(i <= displayDaysCount){
-      displayDays.push(startday.add(i, 'day').format('YYYY-MM-DD'));
-      i++;
+export default class CheckinContent extends Component<{ state: CheckinListState }, CheckinListState> {
+    state?: CheckinListState;
+    loading: boolean = false;
+    recaptchaState?: RecaptchaState;
+    selectRandom: boolean = false;
+    oninit(vnode: any) {
+        super.oninit(vnode);
+        this.state = this.attrs.state;
+        if (app.forum.attribute('fof-recaptcha.configured')) {
+            this.recaptchaState = new RecaptchaState(
+                app.forum.data.attributes,
+                () => {
+                    if (this.recaptchaState!.isInvisible()) {
+                        this.afterCheck(this.selectRandom);
+                    }
+                },
+                (alertAttrs: any) => {
+                    this.loading = false;
+                }
+            );
+        }
     }
 
-    return displayDays;
-  }
+    getWeekdays() {
+        // for China, Monday/day(1) is first day
+        let displayDaysCount = 0;
+        let startday;
+        // if(app.forum.attribute('checkinConstant') === 1){
+        //   displayDaysCount = app.forum.attribute('checkinConstantDays');
+        //   startday = dayjs().subtract(displayDaysCount-1, 'day')
+        // } else {
+        //   startday = dayjs().day(1);
+        //   displayDaysCount = 7;
+        // }
 
-  view() {
-    const checkins = this.state.cache || [];
+        let todayNum: number = dayjs().day();
+        if (todayNum === 0) {
+            todayNum = 7;
+        }
+        startday = dayjs().subtract(todayNum - 1, 'day');
 
-    if(app.session.user){
-        const allowCheckin = app.session.user.attribute("allowCheckin");
-        const displayDays = this.getWeekdays();
-        return (
-            <div className="Checkin-page NotificationList CheckinList">
-                <div className="NotificationList-header">
-                    <h4 className="App-titleControl App-titleControl--text">{app.translator.trans('gtdxyz-checkin.forum.checkin')}</h4>
-                </div>
-                <div className="NotificationList-content">
-                    <ul className="NotificationGroup-content">
-                        {checkins.length > 0 ? (
-                        checkins.map((checkinItem,indx) => {
-                            const check_status = checkinItem.id()>0?'checked':'uncheck';
+        displayDaysCount = 7;
 
-                            return (
-                            <li className={check_status + ' count-'+checkins.length} title={check_status}>
+        const displayDays = [];
+        displayDays.push(startday.format('YYYY-MM-DD'));
 
-                                    {checkinItem.id() > 0 ? (
-                                        <view>
-                                        <div className="Notification-content">
-                                            <span>
-                                            {dayjs(checkinItem.checkin_time()).format('MM/DD')}
-                                            </span>
-                                            <span>{dayjs(checkinItem.checkin_time()).format('ddd')}</span>
-                                        </div>
-                                        <div className="Notification-excerpt">
-                                            {icon('fas fa-star', { className: 'Notification-icon' })}
-                                        </div>
-                                        </view>
-                                    ) : (
-                                    <view>
-                                        <div className="Notification-content">
-                                        <span>
-                                        {dayjs(displayDays[indx]).format('MM/DD')}
-                                        </span>
-                                        <span>{dayjs(displayDays[indx]).format('ddd')}</span>
-                                        </div>
-                                        <div className="Notification-excerpt">
+        let i = 1;
+        while (i <= displayDaysCount) {
+            displayDays.push(startday.add(i, 'day').format('YYYY-MM-DD'));
+            i++;
+        }
 
-                                        {dayjs().isAfter(displayDays[indx],'day') ? (
-                                            icon('fas fa-minus', { className: 'Notification-icon' })
-                                        ) : (
-                                            icon('far fa-star', { className: 'Notification-icon' })
-                                        )}
+        return displayDays;
+    }
 
-                                        </div>
-                                    </view>
-                                    )}
+    view() {
+        const checkins = this.state!.cache || [];
 
-                            </li>
-                            );
-
-                        })
-                        ) : !this.loading ? (
-                        <div className="NotificationList-empty">{app.translator.trans('gtdxyz-checkin.forum.empty-text')}</div>
-                        ) : (
-                        <LoadingIndicator className="LoadingIndicator--block" />
-                        )}
-
-                    </ul>
-                    <div className="subtitle">
-                        {app.translator.trans('gtdxyz-checkin.forum.count-text', {count: app.session.user.attribute('checkin_days_count')})} <br />
-                        {
-                        app.forum.attribute('checkinConstantForce')===1 && (
-                            app.translator.trans('gtdxyz-checkin.forum.constant-recent-count-text', {count: app.session.user.attribute('checkin_constant_count')})
-                        )
-                        }
+        if (app.session.user) {
+            const allowCheckin = app.session.user.attribute("allowCheckin");
+            const displayDays = this.getWeekdays();
+            return (
+                <div className="Checkin-page NotificationList CheckinList">
+                    <div className="NotificationList-header">
+                        <h4 className="App-titleControl App-titleControl--text">{app.translator.trans('gtdxyz-checkin.forum.checkin')}</h4>
                     </div>
-                    <div className="Form-group">
-                        {allowCheckin ? (
-                        <CheckinButton state='enabled' />
-                        ) : (
-                        <CheckinButton state="disabled" />
-                        )}
-                    </div>
-                </div>
+                    <div className="NotificationList-content">
+                        <ul className="NotificationGroup-content">
+                            {checkins.length > 0 ? (
+                                checkins.map((checkinItem, indx) => {
+                                    const id = parseInt(checkinItem.id() || "0");
+                                    const check_status = id > 0 ? 'checked' : 'uncheck';
 
-            </div>
-        );
+                                    return (
+                                        <li className={check_status + ' count-' + checkins.length} title={check_status}>
+
+                                            {id > 0 ? (
+                                                <view>
+                                                    <div className="Notification-content">
+                                                        <span>
+                                                            {dayjs(checkinItem.checkin_time()).format('MM/DD')}
+                                                        </span>
+                                                        <span>{dayjs(checkinItem.checkin_time()).format('ddd')}</span>
+                                                    </div>
+                                                    <div className="Notification-excerpt">
+                                                        {icon('fas fa-star', { className: 'Notification-icon' })}
+                                                    </div>
+                                                </view>
+                                            ) : (
+                                                <view>
+                                                    <div className="Notification-content">
+                                                        <span>
+                                                            {dayjs(displayDays[indx]).format('MM/DD')}
+                                                        </span>
+                                                        <span>{dayjs(displayDays[indx]).format('ddd')}</span>
+                                                    </div>
+                                                    <div className="Notification-excerpt">
+
+                                                        {dayjs().isAfter(displayDays[indx], 'day') ? (
+                                                            icon('fas fa-minus', { className: 'Notification-icon' })
+                                                        ) : (
+                                                            icon('far fa-star', { className: 'Notification-icon' })
+                                                        )}
+
+                                                    </div>
+                                                </view>
+                                            )}
+
+                                        </li>
+                                    );
+
+                                })
+                            ) : !this.loading ? (
+                                <div className="NotificationList-empty">{app.translator.trans('gtdxyz-checkin.forum.empty-text')}</div>
+                            ) : (
+                                <LoadingIndicator className="LoadingIndicator--block" />
+                            )}
+
+                        </ul>
+                        <div className="subtitle">
+                            {app.translator.trans('gtdxyz-checkin.forum.count-text', { count: app.session.user.attribute('checkin_days_count') })} <br />
+                            {
+                                app.forum.attribute('checkinConstantForce') === 1 && (
+                                    app.translator.trans('gtdxyz-checkin.forum.constant-recent-count-text', { count: app.session.user.attribute('checkin_constant_count') })
+                                )
+                            }
+                        </div>
+                        <div>
+                            {allowCheckin ? <Recaptcha state={this.recaptchaState} /> : ""}
+                        </div>
+                        <div className="Form-group">
+                            {allowCheckin ? (
+                                <CheckinButton state='enabled' callback={this.check.bind(this)} />
+                            ) : (
+                                <CheckinButton state="disabled" />
+                            )}
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+        return <div />;
     }
-  }
+
+    check(e: MouseEvent, random: boolean) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!app.forum.attribute('fof-recaptcha.configured')) return this.afterCheck(random);
+        if (!(this.recaptchaState!.isInvisible())) return this.afterCheck(random);
+        this.selectRandom = random;
+        this.loading = true;
+        this.recaptchaState?.execute();
+    }
+    afterCheck(random: boolean) {
+        const token = this.recaptchaState?.getResponse();
+        if (random)
+            app.randomcheckinClick(token);
+        else
+            app.checkinClick(token);
+    }
 }

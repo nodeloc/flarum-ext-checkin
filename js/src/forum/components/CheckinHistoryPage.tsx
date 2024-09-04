@@ -1,20 +1,21 @@
 import app from 'flarum/forum/app';
-import Page from 'flarum/components/Page';
+import Page from 'flarum/common/components/Page';
 import CheckinContent from "./CheckinContent";
 
 export default class CheckinHistoryPage extends Page {
 
-    oninit(vnode) {
+    oninit(vnode:any) {
         super.oninit(vnode);
 
-        app.history.push('UserCheckinRoute');
+        //TODO  这里为什么会少一个参数？？补了一个空串
+        app.history.push('UserCheckinRoute',"");
 
         app.checkins.load();
     }
 
-    oncreate(vnode) {
+    oncreate(vnode:any) {
       super.oncreate(vnode);
-      app.setTitle(app.translator.trans('gtdxyz-checkin.forum.checkin'));
+      app.setTitle(app.translator.trans('gtdxyz-checkin.forum.checkin') as string);
       
     }
 

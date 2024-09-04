@@ -1,9 +1,10 @@
-import Modal from 'flarum/components/Modal';
-import Button from 'flarum/components/Button';
-import Stream from 'flarum/utils/Stream';
+import Modal from 'flarum/common/components/Modal';
+import Button from 'flarum/common/components/Button';
+import Stream from 'flarum/common/utils/Stream';
+import app from 'flarum/forum/app';
 
 export default class checkinFailedModal extends Modal {
-  oninit(vnode) {
+  oninit(vnode: any) {
     super.oninit(vnode);
   }
 
