@@ -9,6 +9,7 @@ use Flarum\Api\Serializer\ForumSerializer;
 use Flarum\User\Event\Saving;
 use Flarum\Settings\Event\Saving as SettingsSaving;
 
+use Flarum\User\User;
 use FoF\ReCaptcha\Listeners\AddValidatorRule;
 use Gtdxyz\Checkin\Access\UserPolicy;
 
