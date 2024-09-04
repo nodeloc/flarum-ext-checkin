@@ -31,5 +31,8 @@
         "psr-4": {
             "Gtdxyz\\Checkin\\": "src/"
         }
+    },
+    "require-dev": {
+        "fof/recaptcha": "^1.3"
     }
 }

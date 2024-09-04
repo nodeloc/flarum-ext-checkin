@@ -3,9 +3,11 @@ import NotificationsDropdown from 'flarum/forum/components/NotificationsDropdown
 import icon from 'flarum/common/helpers/icon';
 import type Mithril from 'mithril';
 import CheckinList from './CheckinList';
+import { IDropdownAttrs } from 'flarum/common/components/Dropdown';
+import CheckinListState from '../states/CheckinListSate';
 
-export default class CheckinModal extends NotificationsDropdown {
-  static initAttrs(attrs) {
+export default class CheckinModal extends NotificationsDropdown<IDropdownAttrs & { state: CheckinListState }> {
+  static initAttrs(attrs: any) {
     attrs.label = attrs.label || app.translator.trans('gtdxyz-checkin.forum.checkin');
     attrs.icon = attrs.icon || 'fas fa-calendar-alt';
     attrs.menuClassName = 'forum-checkin';
@@ -30,11 +32,11 @@ export default class CheckinModal extends NotificationsDropdown {
     );
   }
 
-  
+
 
   goToRoute() {
     m.route.set(app.route('UserCheckinRoute', {
-      username: app.session.user.username(),
+      username: app.session.user!.username(),
     }));
   }
 
@@ -43,6 +45,6 @@ export default class CheckinModal extends NotificationsDropdown {
   }
 
   getNewCount() {
-      return 0;
+    return 0;
   }
 }

@@ -9,6 +9,7 @@ use Flarum\Api\Serializer\ForumSerializer;
 use Flarum\User\Event\Saving;
 use Flarum\Settings\Event\Saving as SettingsSaving;
 
+use FoF\ReCaptcha\Listeners\AddValidatorRule;
 use Gtdxyz\Checkin\Access\UserPolicy;
 
 use Gtdxyz\Checkin\Attributes\AddCheckinAttributes;
@@ -18,14 +19,15 @@ use Gtdxyz\Checkin\Event\CheckinHistoryEvent;
 use Gtdxyz\Checkin\Listeners\CheckinHistoryListener;
 use Gtdxyz\Checkin\Listeners\CheckinUpdateMoneyListener;
 use Gtdxyz\Checkin\Api\Controller\ListUserCheckinHistoryController;
+use Gtdxyz\Checkin\Validator\CheckinValidator;
 
 $extend = [
     (new Extend\Frontend('admin'))
-        ->js(__DIR__.'/js/dist/admin.js'),
-    
+        ->js(__DIR__ . '/js/dist/admin.js'),
+
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
-        ->css(__DIR__.'/less/forum.less')
+        ->css(__DIR__ . '/less/forum.less')
         ->route('/u/{username}/checkin/history', 'gtdxyz-checkin.forum.checkin'),
 
     (new Extend\Locales(__DIR__ . '/locale')),
@@ -41,16 +43,16 @@ $extend = [
     (new Extend\Routes('api'))
         ->get('/checkin/history', 'user.checkin.history', ListUserCheckinHistoryController::class),
 
-    
+
     // (new Extend\ApiSerializer(UserSerializer::class))
     //     ->attributes(AddCheckinAttributes::class),
 
     (new Extend\ApiSerializer(CurrentUserSerializer::class))
         ->attributes(AddCheckinAttributes::class),
-    
+
     (new Extend\Settings())
         ->serializeToForum('checkinPosition', 'gtdxyz-checkin.position', 'intval', 0)
-        ->serializeToForum('checkinReward', 'gtdxyz-checkin.reward','intval', 0)
+        ->serializeToForum('checkinReward', 'gtdxyz-checkin.reward', 'intval', 0)
         ->serializeToForum('checkinAuto', 'gtdxyz-checkin.auto', 'intval', 0)
         ->serializeToForum('checkinConstant', 'gtdxyz-checkin.constant', 'intval', 0)
         ->serializeToForum('checkinConstantForce', 'gtdxyz-checkin.constant-force', 'intval', 0)
@@ -64,6 +66,9 @@ $extend = [
         ->attribute('allowCheckin', function (ForumSerializer $serializer) {
             return $serializer->getActor()->hasPermission("checkin.allowCheckin");
         }),
+
+    (new Extend\Validator(CheckinValidator::class))
+        ->configure(AddValidatorRule::class)
 ];
 
 if (class_exists('Gtdxyz\Money\History\Event\MoneyHistoryEvent')) {
