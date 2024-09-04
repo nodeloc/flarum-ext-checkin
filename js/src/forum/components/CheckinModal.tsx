@@ -41,7 +41,7 @@ export default class CheckinModal extends NotificationsDropdown<IDropdownAttrs &
   }
 
   getUnreadCount() {
-    const allowCheckin = app.session.user.attribute("allowCheckin");
+    const allowCheckin = app.session.user!.attribute("allowCheckin");
     if (!allowCheckin) {
       return 0;
     }else{
@@ -50,7 +50,7 @@ export default class CheckinModal extends NotificationsDropdown<IDropdownAttrs &
   }
 
   getNewCount() {
-      const allowCheckin = app.session.user.attribute("allowCheckin");
+      const allowCheckin = app.session.user!.attribute("allowCheckin");
       if (!allowCheckin) {
         return 0;
       }else{

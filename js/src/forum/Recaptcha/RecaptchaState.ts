@@ -1,12 +1,17 @@
 import app from 'flarum/common/app';
 
 export default class RecaptchaState {
-  constructor(settings, callback, errorCallback = null) {
+  settings: any;
+  callback: any;
+  errorCallback: any;
+  widgetId: any;
+  type: any;
+  constructor(settings:any, callback:any, errorCallback:any = null) {
     this.settings = settings;
     this.callback = callback;
     this.errorCallback =
       errorCallback ||
-      ((alertAttrs) => {
+      ((alertAttrs:any) => {
         // By default, the alert will just be shown globally
         app.alerts.show(alertAttrs);
       });
@@ -15,7 +20,7 @@ export default class RecaptchaState {
     this.type = this.settings['fof-recaptcha.type'];
   }
 
-  render(element) {
+  render(element:any) {
     this.widgetId = grecaptcha.render(element, {
       sitekey: this.settings['fof-recaptcha.credentials.site'],
       theme: !!Number(this.settings['theme_dark_mode']) ? 'dark' : 'light',

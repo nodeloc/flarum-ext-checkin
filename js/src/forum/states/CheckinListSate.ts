@@ -1,13 +1,11 @@
 import dayjs from 'dayjs';
-import ForumApplication from 'flarum/forum/ForumApplication';
+import app from 'flarum/forum/app';
+import UserCheckinHistory from '../models/UserCheckinHistory';
 
 export default class CheckinListState {
-  app: ForumApplication;
-  cache: any;
+  cache: UserCheckinHistory[] = [];
   loading: boolean;
-  constructor(app: ForumApplication) {
-    this.app = app;
-
+  constructor() {
     /**
      * Whether or not the list are loading.
      */
@@ -21,8 +19,8 @@ export default class CheckinListState {
   load() {
 
     // if online cross 24H
-    if (this.cache && this.app.session.user!.attribute('checkin_sync')) {
-      if (dayjs(this.app.session.user!.attribute('checkin_sync')).isSame(dayjs().format('YYYY-MM-DD'), 'day')) {
+    if (this.cache && app.session.user!.attribute('checkin_sync')) {
+      if (dayjs(app.session.user!.attribute('checkin_sync')).isSame(dayjs().format('YYYY-MM-DD'), 'day')) {
         return;
       }
     }
@@ -30,10 +28,10 @@ export default class CheckinListState {
     this.loading = true;
     m.redraw();
 
-    this.app.store
-      .find('checkin/history')
+    app.store
+      .find<UserCheckinHistory[]>('checkin/history')
       .then((checkins) => {
-        this.app.session.user!.pushAttributes({ checkin_sync: dayjs().format('YYYY-MM-DD') });
+        app.session.user!.pushAttributes({ checkin_sync: dayjs().format('YYYY-MM-DD') });
         this.cache = checkins;
       })
       .catch(() => { })

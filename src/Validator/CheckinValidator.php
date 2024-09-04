@@ -7,6 +7,6 @@ class CheckinValidator extends AbstractValidator
 {
     protected function getRules()
     {
-        return [];
+        return ['g-recaptcha-response' => ['required', 'recaptcha']];
     }
 }

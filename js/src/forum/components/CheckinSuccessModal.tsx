@@ -1,9 +1,10 @@
-import Modal from 'flarum/components/Modal';
-import Button from 'flarum/components/Button';
-import Stream from 'flarum/utils/Stream';
+import Modal from 'flarum/common/components/Modal';
+import Button from 'flarum/common/components/Button';
+import Stream from 'flarum/common/utils/Stream';
+import app from 'flarum/forum/app';
 
-export default class checkinSuccessModal extends Modal {
-  oninit(vnode) {
+export default class CheckinSuccessModal extends Modal {
+  oninit(vnode:any) {
     super.oninit(vnode);
   }
 
@@ -17,21 +18,21 @@ export default class checkinSuccessModal extends Modal {
 
   content() {
     //
-    const checkin_days_count = app.session.user.attribute("checkin_days_count");
-    const lastcheckinmoney = app.session.user.attribute("lastCheckinMoney");
-    const checkinSuccessText = app.forum.attribute("checkinSuccessText");
-    const checkinSuccessRewardText = app.forum.attribute("checkinSuccessRewardText");
-    const moneyExtensionExist = app.forum.attribute('antoinefr-money.moneyname')!==undefined;
+    const checkin_days_count = app.session.user!.attribute<number>("checkin_days_count");
+    const lastcheckinmoney = app.session.user!.attribute<number>("lastCheckinMoney");
+    const checkinSuccessText = app.forum.attribute<string>("checkinSuccessText");
+    const checkinSuccessRewardText = app.forum.attribute<string>("checkinSuccessRewardText");
+    const moneyExtensionExist = app.forum.attribute('antoinefr-money.moneyname') !== undefined;
 
     let moneyName = "";
     let rewardText = "";
     let successTextClassName = "CheckinModal hideText";
     let rewardTextClassName = "CheckinModal hideText";
 
-    if(checkinSuccessText!==""){
+    if (checkinSuccessText !== "") {
       successTextClassName = "CheckinModal successText";
     }
-    const idioms= {
+    const idioms: Record<number, string[]> = {
       1: ["唉~~~~~"],
       2: ["时运不济"],
       3: ["时运不济"],
@@ -51,18 +52,18 @@ export default class checkinSuccessModal extends Modal {
       17: ["鸿运当头"],
       18: ["天时地利人和"]
     };
-    let result = [];
+    let result: string[] = [];
 
     let act_money = 0;
-    if(moneyExtensionExist===true && checkinSuccessRewardText!==""){
+    if (moneyExtensionExist === true && checkinSuccessRewardText !== "") {
       moneyName = app.forum.attribute('antoinefr-money.moneyname') || '[money]';
-      rewardText = moneyName.replace('[money]', lastcheckinmoney);
+      rewardText = moneyName.replace('[money]', lastcheckinmoney + "");
 
       rewardTextClassName = "checkInResultModal rewardText";
-      if(lastcheckinmoney>100){
+      if (lastcheckinmoney > 100) {
         rewardText = rewardText + ' , 其中连续签到 7 天额外奖励 100能量  ';
-        act_money = lastcheckinmoney -100;
-      }else{
+        act_money = lastcheckinmoney - 100;
+      } else {
         act_money = lastcheckinmoney;
       }
       if (idioms[act_money]) {
@@ -72,7 +73,7 @@ export default class checkinSuccessModal extends Modal {
 
     return (
       <div className="Modal-body">
-        <div className={successTextClassName}>{checkinSuccessText.replace('[days]', checkin_days_count+1)}</div>
+        <div className={successTextClassName}>{checkinSuccessText.replace('[days]', (checkin_days_count + 1)+"")}</div>
         <div className={rewardTextClassName}>您今天{result.join(", ")}，{checkinSuccessRewardText.replace('[reward]', rewardText)}</div>
       </div>
     );

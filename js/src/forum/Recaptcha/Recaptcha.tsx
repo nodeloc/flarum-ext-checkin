@@ -1,19 +1,18 @@
-import app from 'flarum/common/app';
+import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
-//@ts-ignore
+// @ts-ignore
 import load from 'external-load';
 import RecaptchaState from './RecaptchaState';
 
 const addResources = async () => {
     if (app.recaptchaLoaded) return;
-
     await load.js(`https://www.recaptcha.net/recaptcha/api.js?hl=${app.translator.getLocale()}&render=explicit`);
-
     app.recaptchaLoaded = true;
 };
 
-export default class Recaptcha extends Component {
-    oninit(vnode) {
+export default class Recaptcha extends Component<{ state: RecaptchaState }, RecaptchaState> {
+    state?: RecaptchaState;
+    oninit(vnode: any) {
         super.oninit(vnode);
     }
 
@@ -25,7 +24,7 @@ export default class Recaptcha extends Component {
         );
     }
 
-    oncreate(vnode) {
+    oncreate(vnode: any) {
         super.oncreate(vnode);
 
         addResources().then(() => {
