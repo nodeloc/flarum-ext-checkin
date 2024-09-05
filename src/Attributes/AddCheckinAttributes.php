@@ -56,11 +56,7 @@ class AddCheckinAttributes
             $checkin_last_time = $last_history->checkin_time;
 
             $last_date = Carbon::parse($last_history->checkin_time);
-            $checkin_yesterday = $last_date->isYesterday();
             $checkin_today = $last_date->isToday();
-
-            $checkin_days_count = $checkin_yesterday?1:0;
-            $checkin_days_count += $checkin_today?1:0;
 
             //get checked days checkin data
             $start_week = Carbon::today()->startOfWeek()->format('Y-m-d 00:00:00');
@@ -73,7 +69,7 @@ class AddCheckinAttributes
             $end_date = Carbon::now()->format('Y-m-d H:i:s');
 
             $days_count = UserCheckinHistory::where('user_id',$user->id)
-                ->where('type','N')
+                //->where('type','N')
                 ->where('constant','>',0)
                 ->where('checkin_time','>', $start_week)
                 ->where('checkin_time','<', $end_date)

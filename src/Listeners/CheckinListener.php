@@ -46,17 +46,18 @@ class CheckinListener
     public function checkinSaving(Saving $event)
     {
         $attributes = Arr::get($event->data, 'attributes', []);
-        if (!Arr::get($attributes, 'g-recaptcha-response')) {
-            //Validator 似乎不会检验没有传入的参数，这里手动补一个
-            $attributes['g-recaptcha-response'] = "";
-        }
-        $this->validator->assertValid($attributes);
+
         $actor = $event->actor;
         $user = $event->user;
-        $actor->assertCan('allowCheckin', $user);
 
         //check permissions
         if (Arr::has($attributes, "checkin_days_count") && is_int($attributes['checkin_days_count'])) {
+            if (!Arr::get($attributes, 'g-recaptcha-response')) {
+                //Validator 似乎不会检验没有传入的参数，这里手动补一个
+                $attributes['g-recaptcha-response'] = "";
+            }
+            $this->validator->assertValid($attributes);
+            $actor->assertCan('allowCheckin', $user);
 
             $userID = $user->id;
             //daily reward
